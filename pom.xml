@@ -4,7 +4,7 @@
 
     <groupId>com.worldcretornica</groupId>
     <artifactId>PlotMe-Core</artifactId>
-    <version>0.17-SNAPSHOT</version>
+    <version>0.16.4</version>
     <packaging>jar</packaging>
 
     <name>PlotMe-Core</name>
@@ -57,8 +57,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>
                 </configuration>
@@ -78,7 +78,7 @@
                         <configuration>
                             <sources>
                                 <source>src/bukkit/java</source>
-                                <source>src/sponge/java</source>
+                                <!-- <source>src/sponge/java</source> -->
                             </sources>
                         </configuration>
                     </execution>
@@ -98,7 +98,7 @@
         </repository>
         <repository>
             <id>onarandombox-repo</id>
-            <url>http://repo.onarandombox.com/content/groups/public</url>
+            <url>http://repo.onarandombox.com/content/groups/public/</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -111,15 +111,8 @@
             </snapshots>
         </repository>
         <repository>
-            <id>vault-repo</id>
-            <url>http://nexus.theyeticave.net/content/repositories/pub_releases</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>mcstats-repo</id>
-            <url>http://repo.mcstats.org/content/groups/public/</url>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -141,7 +134,7 @@
         <dependency>
             <groupId>org.spongepowered</groupId>
             <artifactId>spongeapi</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -173,17 +166,17 @@
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
-            <version>6.0.1-SNAPSHOT</version>
+            <version>6.1</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
             <artifactId>VaultAPI</artifactId>
-            <version>1.5</version>
+            <version>1.7</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>org.getlwc</groupId>
             <artifactId>lwc</artifactId>
             <version>4.4.0-SNAPSHOT</version>
@@ -194,7 +187,7 @@
                     <groupId>org.bukkit</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>org.mcstats.bukkit</groupId>
             <artifactId>metrics</artifactId>
@@ -210,7 +203,7 @@
     </dependencies>
 
     <scm>
-        <url>https://github.com/ZachBora/PlotMe-Core/tree/master/</url>
+        <url>https://github.com/InstaMC/PlotMe-Core/tree/0.16.1/</url>
     </scm>
 
 </project>

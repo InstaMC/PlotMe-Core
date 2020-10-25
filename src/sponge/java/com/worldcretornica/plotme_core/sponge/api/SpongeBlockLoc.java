@@ -6,7 +6,7 @@ import com.worldcretornica.plotme_core.api.ILocation;
 import com.worldcretornica.plotme_core.api.IWorld;
 import org.spongepowered.api.block.BlockLoc;
 import org.spongepowered.api.world.World;
-import org.spongepowered.api.world.biome.BiomeTypes;
+import org.spongepowered.api.world.biome.;
 
 public class SpongeBlockLoc implements IBlock {
 
@@ -53,7 +53,7 @@ public class SpongeBlockLoc implements IBlock {
 
     @Override
     public void setBiome(IBiome biome) {
-        block.getExtent().setBiome(block.getPosition(), BiomeTypes.PLAINS); //TODO: Placeholder to set the biome to Plains
+        block.getExtent().setBiome(block.getPosition(), BiomeType.PLAINS); //TODO: Placeholder to set the biome to Plains
     }
 
     @Override

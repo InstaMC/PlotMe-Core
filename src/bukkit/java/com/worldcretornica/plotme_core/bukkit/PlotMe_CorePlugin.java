@@ -67,7 +67,7 @@ public class PlotMe_CorePlugin extends JavaPlugin {
         
         plotme = new PlotMe_Core(serverObjectBuilder, schematicutil);
         getAPI().enable();
-        doMetric();
+        //doMetric();
     }
 
     public PlotMe_Core getAPI() {

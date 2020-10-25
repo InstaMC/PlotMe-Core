@@ -1,7 +1,5 @@
 package com.worldcretornica.plotme_core;
 
-import com.griefcraft.lwc.LWC;
-import com.griefcraft.model.Protection;
 import com.worldcretornica.plotme_core.api.IBiome;
 import com.worldcretornica.plotme_core.api.IBlock;
 import com.worldcretornica.plotme_core.api.ICommandSender;
@@ -737,12 +735,12 @@ public class PlotMeCoreManager {
         plugin.getServerBridge().runTaskAsynchronously(new Runnable() {
             @Override
             public void run() {
-                LWC lwc = LWC.getInstance();
+                /*LWC lwc = LWC.getInstance();
                 List<Protection> protections = lwc.getPhysicalDatabase().loadProtections(worldName, x1, x2, y1, y2, z1, z2);
 
                 for (Protection protection : protections) {
                     protection.remove();
-                }
+                }*/
             }
         });
     }

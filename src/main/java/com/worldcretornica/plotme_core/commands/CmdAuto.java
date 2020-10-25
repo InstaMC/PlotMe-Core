@@ -43,16 +43,20 @@ public class CmdAuto extends PlotCommand {
                 } else {
                     int limit = pmi.getPlotAutoLimit();
 
-                    int x = 0;
-                    int z = 0;
+                    int x = pmi.getMaxPlotX(world.getName().toLowerCase());
+                    int z = pmi.getMaxPlotZByX(x, world.getName().toLowerCase());
                     int dx = 0;
                     int dz = -1;
                     int t = limit;
                     int maxPlots = t * t;
-
+                    System.out.print("limitPlots:" + limit);
+                    System.out.print("maxPlots:" + maxPlots);
+                    System.out.println("totalPlots: " + pmi.getNbPlots());
+                    
                     for (int i = 0; i < maxPlots; i++) {
                         if (-limit / 2 <= x && x <= limit / 2 && -limit / 2 <= z && z <= limit / 2) {
                             String id = x + ";" + z;
+                            System.out.println("[PlotMe-Auto] Check: " + id);
                             if (manager.isPlotAvailable(id, pmi)) {
                                 double price = 0.0;
 

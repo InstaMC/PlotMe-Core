@@ -46,7 +46,7 @@ public class SqlManager {
             if (isUsingMySQL()) {
                 Class.forName("com.mysql.jdbc.Driver");
                 conn = DriverManager.getConnection(mySQLconn, mySQLuname, mySQLpass);
-                conn.setAutoCommit(false);
+                getConnection().setAutoCommit(false);
             } else {
                 Class.forName(SQLITE_DRIVER);
                 conn = DriverManager.getConnection("jdbc:sqlite:" + plugin.getServerBridge().getDataFolder().getAbsolutePath() + "/plots.db");
@@ -100,10 +100,9 @@ public class SqlManager {
 
     private boolean tableExists(String name) {
         ResultSet rs = null;
-        try {
-            Connection conn = getConnection();
-
-            DatabaseMetaData dbm = conn.getMetaData();
+        try 
+        {
+            DatabaseMetaData dbm = getConnection().getMetaData();
             rs = dbm.getTables(null, null, name, null);
             return rs.next();
         } catch (SQLException ex) {
@@ -123,9 +122,8 @@ public class SqlManager {
     }
 
     protected void createTable() {
-        try (Statement st = conn.createStatement()) {
+        try (Statement st = getConnection().createStatement()) {
             //PlotMe.logger.info(PlotMe.PREFIX + " Creating Database...");
-            Connection conn = getConnection();
             String PLOT_TABLE = "CREATE TABLE IF NOT EXISTS `plotmePlots` ("
                     + "`idX` INTEGER," //1
                     + "`idZ` INTEGER," //2
@@ -150,7 +148,7 @@ public class SqlManager {
                     + "PRIMARY KEY (idX, idZ, world) "
                     + ");";
             st.executeUpdate(PLOT_TABLE);
-            conn.commit();
+            getConnection().commit();
 
             String ALLOWED_TABLE = "CREATE TABLE IF NOT EXISTS `plotmeAllowed` ("
                     + "`idX` INTEGER,"
@@ -161,7 +159,7 @@ public class SqlManager {
                     + "PRIMARY KEY (idX, idZ, world, player) "
                     + ");";
             st.executeUpdate(ALLOWED_TABLE);
-            conn.commit();
+            getConnection().commit();
 
             String DENIED_TABLE = "CREATE TABLE IF NOT EXISTS `plotmeDenied` ("
                     + "`idX` INTEGER,"
@@ -172,7 +170,7 @@ public class SqlManager {
                     + "PRIMARY KEY (idX, idZ, world, player) "
                     + ");";
             st.executeUpdate(DENIED_TABLE);
-            conn.commit();
+            getConnection().commit();
 
             String METADATA_TABLE = "CREATE TABLE IF NOT EXISTS `plotmeMetadata` ("
                     + "`idX` INTEGER,"
@@ -184,7 +182,7 @@ public class SqlManager {
                     + "PRIMARY KEY (idX, idZ, world, pluginname, propertyname) "
                     + ");";
             st.executeUpdate(METADATA_TABLE);
-            conn.commit();
+            getConnection().commit();
 
             //UpdateTables();
 
@@ -347,14 +345,12 @@ public class SqlManager {
 
         // Plots
         try {
-            Connection conn = getConnection();
-            
             strSql.append("INSERT INTO plotmePlots (idX, idZ, owner, world, topX, bottomX, topZ, bottomZ, ");
             strSql.append("biome, expireddate, finished, customprice, forsale, finisheddate, protected,");
             strSql.append("auctionned, currentbid, currentbidder, currentbidderId, ownerId) ");
             strSql.append("VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-            ps = conn.prepareStatement(strSql.toString());
+            ps = getConnection().prepareStatement(strSql.toString());
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(3, plot.getOwner());
@@ -388,7 +384,7 @@ public class SqlManager {
             }
 
             ps.executeUpdate();
-            conn.commit();
+            getConnection().commit();
 
             PlayerList allowedlist = plot.allowed();
             if (allowedlist != null && allowedlist.getAllPlayers() != null) {
@@ -438,8 +434,7 @@ public class SqlManager {
     public void updatePlot(int idX, int idZ, String world, String field, Object value) {
 
         //Plots
-        Connection conn = getConnection();
-        try (PreparedStatement ps = conn.prepareStatement("UPDATE plotmePlots SET " + field + " = ? " + "WHERE idX = ? AND idZ = ? AND world = ?")) {
+        try (PreparedStatement ps = getConnection().prepareStatement("UPDATE plotmePlots SET " + field + " = ? " + "WHERE idX = ? AND idZ = ? AND world = ?")) {
 
             ps.setObject(1, value);
             ps.setInt(2, idX);
@@ -447,7 +442,7 @@ public class SqlManager {
             ps.setString(4, world.toLowerCase());
 
             ps.executeUpdate();
-            conn.commit();
+            getConnection().commit();
 
             if ("owner".equalsIgnoreCase(field)) {
                 fetchUUIDAsync(idX, idZ, world, "owner", value.toString());
@@ -459,9 +454,8 @@ public class SqlManager {
     }
 
     public void addPlotAllowed(String player, UUID uuid, int idX, int idZ, String world) {
-        Connection conn = getConnection();
         //Allowed
-        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO plotmeAllowed (idX, idZ, player, world, playerid) VALUES (?,?,?,?,?)")) {
+        try (PreparedStatement ps = getConnection().prepareStatement("INSERT INTO plotmeAllowed (idX, idZ, player, world, playerid) VALUES (?,?,?,?,?)")) {
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(3, player);
@@ -474,7 +468,7 @@ public class SqlManager {
             }
 
             ps.executeUpdate();
-            conn.commit();
+            getConnection().commit();
 
         } catch (SQLException ex) {
             plugin.getLogger().severe("Insert Exception :");
@@ -483,9 +477,8 @@ public class SqlManager {
     }
 
     public void addPlotDenied(String player, UUID playerid, int idX, int idZ, String world) {
-        Connection conn = getConnection();
         //Denied
-        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO plotmeDenied (idX, idZ, player, world, playerid) VALUES (?,?,?,?,?)")) {
+        try (PreparedStatement ps = getConnection().prepareStatement("INSERT INTO plotmeDenied (idX, idZ, player, world, playerid) VALUES (?,?,?,?,?)")) {
 
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
@@ -499,7 +492,7 @@ public class SqlManager {
             }
 
             ps.executeUpdate();
-            conn.commit();
+            getConnection().commit();
 
         } catch (SQLException ex) {
             plugin.getLogger().severe("Insert Exception :");
@@ -510,39 +503,37 @@ public class SqlManager {
     public void deletePlot(int idX, int idZ, String world) {
         PreparedStatement ps = null;
         try {
-            Connection conn = getConnection();
-
-            ps = conn.prepareStatement("DELETE FROM plotmeAllowed WHERE idX = ? and idZ = ? and LOWER(world) = ?");
+            ps = getConnection().prepareStatement("DELETE FROM plotmeAllowed WHERE idX = ? and idZ = ? and LOWER(world) = ?");
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(3, world.toLowerCase());
             ps.executeUpdate();
             ps.close();
-            conn.commit();
+            getConnection().commit();
 
-            ps = conn.prepareStatement("DELETE FROM plotmeDenied WHERE idX = ? and idZ = ? and LOWER(world) = ?");
+            ps = getConnection().prepareStatement("DELETE FROM plotmeDenied WHERE idX = ? and idZ = ? and LOWER(world) = ?");
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(3, world.toLowerCase());
             ps.executeUpdate();
             ps.close();
-            conn.commit();
+            getConnection().commit();
 
-            ps = conn.prepareStatement("DELETE FROM plotmeMetadata WHERE idX = ? and idZ = ? and LOWER(world) = ?");
+            ps = getConnection().prepareStatement("DELETE FROM plotmeMetadata WHERE idX = ? and idZ = ? and LOWER(world) = ?");
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(3, world.toLowerCase());
             ps.executeUpdate();
             ps.close();
-            conn.commit();
+            getConnection().commit();
             
-            ps = conn.prepareStatement("DELETE FROM plotmePlots WHERE idX = ? and idZ = ? and LOWER(world) = ?");
+            ps = getConnection().prepareStatement("DELETE FROM plotmePlots WHERE idX = ? and idZ = ? and LOWER(world) = ?");
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(3, world.toLowerCase());
             ps.executeUpdate();
             ps.close();
-            conn.commit();
+            getConnection().commit();
 
         } catch (SQLException ex) {
             plugin.getLogger().severe("Delete Exception :");
@@ -563,20 +554,18 @@ public class SqlManager {
         PreparedStatement ps = null;
 
         try {
-            Connection conn = getConnection();
-
             if (playerid == null) {
-                ps = conn.prepareStatement("DELETE FROM plotmeAllowed WHERE idX = ? and idZ = ? and player = ? and LOWER(world) = ?");
+                ps = getConnection().prepareStatement("DELETE FROM plotmeAllowed WHERE idX = ? and idZ = ? and player = ? and LOWER(world) = ?");
                 ps.setString(3, player);
             } else {
-                ps = conn.prepareStatement("DELETE FROM plotmeAllowed WHERE idX = ? and idZ = ? and playerid = ? and LOWER(world) = ?");
+                ps = getConnection().prepareStatement("DELETE FROM plotmeAllowed WHERE idX = ? and idZ = ? and playerid = ? and LOWER(world) = ?");
                 ps.setBytes(3, UUIDFetcher.toBytes(playerid));
             }
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(4, world);
             ps.executeUpdate();
-            conn.commit();
+            getConnection().commit();
 
         } catch (SQLException ex) {
             plugin.getLogger().severe("Delete Exception :");
@@ -597,20 +586,18 @@ public class SqlManager {
         PreparedStatement ps = null;
 
         try {
-            Connection conn = getConnection();
-
             if (playerid == null) {
-                ps = conn.prepareStatement("DELETE FROM plotmeDenied WHERE idX = ? and idZ = ? and player = ? and LOWER(world) = ?");
+                ps = getConnection().prepareStatement("DELETE FROM plotmeDenied WHERE idX = ? and idZ = ? and player = ? and LOWER(world) = ?");
                 ps.setString(3, player);
             } else {
-                ps = conn.prepareStatement("DELETE FROM plotmeDenied WHERE idX = ? and idZ = ? and playerid = ? and LOWER(world) = ?");
+                ps = getConnection().prepareStatement("DELETE FROM plotmeDenied WHERE idX = ? and idZ = ? and playerid = ? and LOWER(world) = ?");
                 ps.setBytes(3, UUIDFetcher.toBytes(playerid));
             }
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(4, world);
             ps.executeUpdate();
-            conn.commit();
+            getConnection().commit();
 
         } catch (SQLException ex) {
             plugin.getLogger().severe("Delete Exception :");
@@ -642,9 +629,8 @@ public class SqlManager {
         int idZ = PlotMeCoreManager.getInstance().getIdZ(id);
 
         try {
-            Connection conn = getConnection();
 
-            statementPlot = conn.prepareStatement("SELECT * FROM plotmePlots WHERE LOWER(world) = ? AND idX = ? and idZ = ?");
+            statementPlot = getConnection().prepareStatement("SELECT * FROM plotmePlots WHERE LOWER(world) = ? AND idX = ? and idZ = ?");
             statementPlot.setString(1, world);
             statementPlot.setInt(2, idX);
             statementPlot.setInt(3, idZ);
@@ -681,11 +667,12 @@ public class SqlManager {
                     ownerId = UUIDFetcher.fromBytes(byOwner);
                 }
 
-                statementAllowed = conn.prepareStatement("SELECT * FROM plotmeAllowed WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
+                statementAllowed = getConnection().prepareStatement("SELECT * FROM plotmeAllowed WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
                 statementAllowed.setString(1, world);
                 statementAllowed.setInt(2, idX);
                 statementAllowed.setInt(3, idZ);
-
+                System.out.println(world + ", " + idX + ", " + idZ);
+                System.out.println(statementAllowed.toString());
                 setAllowed = statementAllowed.executeQuery();
 
                 while (setAllowed.next()) {
@@ -699,7 +686,7 @@ public class SqlManager {
 
                 setAllowed.close();
 
-                statementDenied = conn.prepareStatement("SELECT * FROM plotmeDenied WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
+                statementDenied = getConnection().prepareStatement("SELECT * FROM plotmeDenied WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
                 statementDenied.setString(1, world);
                 statementDenied.setInt(2, idX);
                 statementDenied.setInt(3, idZ);
@@ -716,7 +703,7 @@ public class SqlManager {
                 }
                 setDenied.close();
                 
-                statementMetadata = conn.prepareStatement("SELECT pluginname, propertyname, propertyvalue FROM plotmeMetadata WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
+                statementMetadata = getConnection().prepareStatement("SELECT pluginname, propertyname, propertyvalue FROM plotmeMetadata WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
                 statementMetadata.setString(1, world);
                 statementMetadata.setInt(2, idX);
                 statementMetadata.setInt(3, idZ);
@@ -813,9 +800,7 @@ public class SqlManager {
         ResultSet setMetadata = null;
 
         try {
-            Connection conn = getConnection();
-
-            statementPlot = conn.createStatement();
+            statementPlot = getConnection().createStatement();
             setPlots = statementPlot.executeQuery("SELECT * FROM plotmePlots WHERE LOWER(world) = '" + world + "'");
 
             while (setPlots.next()) {
@@ -845,7 +830,7 @@ public class SqlManager {
                 if (byOwner != null) {
                     ownerId = UUIDFetcher.fromBytes(byOwner);
                 }
-                statementAllowed = conn.createStatement();
+                statementAllowed = getConnection().createStatement();
                 setAllowed = statementAllowed.executeQuery("SELECT * FROM plotmeAllowed WHERE idX = '" + idX + 
                         "' AND idZ = '" + idZ + "' AND LOWER(world) = '" + world + "'");
 
@@ -860,7 +845,7 @@ public class SqlManager {
 
                 setAllowed.close();
 
-                statementDenied = conn.createStatement();
+                statementDenied = getConnection().createStatement();
                 setDenied = statementDenied.executeQuery("SELECT * FROM plotmeDenied WHERE idX = '" + idX + 
                         "' AND idZ = '" + idZ + "' AND LOWER(world) = '" + world + "'");
 
@@ -875,7 +860,7 @@ public class SqlManager {
 
                 setDenied.close();
                 
-                statementMetadata = conn.createStatement();
+                statementMetadata = getConnection().createStatement();
                 setMetadata = statementMetadata.executeQuery("SELECT * FROM plotmeMetadata WHERE idX = '" + idX + 
                         "' AND idZ = '" + idZ + "' AND LOWER(world) = '" + world + "'");
                 
@@ -938,10 +923,8 @@ public class SqlManager {
      * @return number of plots in the world
      */
     public int getPlotCount(String world) {
-
-        Connection conn = getConnection();
         int nbplots = 0;
-        try (PreparedStatement ps = conn.prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ?")) {
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ?")) {
 
             ps.setString(1, world);
             try (ResultSet setNbPlots = ps.executeQuery()) {
@@ -955,6 +938,61 @@ public class SqlManager {
         }
         return nbplots;
     }
+    
+    public int getMaxPlotX(String world) {
+        int maxX = 0;
+        
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT idX FROM `plotmePlots` WHERE LOWER(world) = ? ORDER BY idX DESC LIMIT 1")) {
+
+            ps.setString(1, world);
+            try (ResultSet setNbPlots = ps.executeQuery()) {
+                if (setNbPlots.next()) {
+                    maxX = setNbPlots.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().severe("PlotCount Exception :");
+            plugin.getLogger().severe(ex.getMessage());
+        }
+        return maxX;
+    }
+    
+    public int getMaxPlotZByX(int x, String world) {
+        int maxX = 0;
+        
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT idZ FROM `plotmePlots` WHERE LOWER(world) = ? AND `idX` = ? ORDER BY idZ ASC LIMIT 1")) {
+
+            ps.setString(1, world);
+            ps.setInt(2, x);
+            try (ResultSet setNbPlots = ps.executeQuery()) {
+                if (setNbPlots.next()) {
+                    maxX = setNbPlots.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().severe("PlotCount Exception :");
+            plugin.getLogger().severe(ex.getMessage());
+        }
+        return maxX;
+    }
+    
+    public int getMaxPlotZ(String world) {
+        int maxZ = 0;
+        
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT idZ FROM `plotmePlots` WHERE LOWER(world) = ? ORDER BY idZ DESC LIMIT 1")) {
+
+            ps.setString(1, world);
+            try (ResultSet setNbPlots = ps.executeQuery()) {
+                if (setNbPlots.next()) {
+                    maxZ = setNbPlots.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().severe("PlotCount Exception :");
+            plugin.getLogger().severe(ex.getMessage());
+        }
+        return maxZ;
+    }
 
     public int getPlotCount(String world, UUID ownerId, String owner) {
         PreparedStatement ps = null;
@@ -962,14 +1000,12 @@ public class SqlManager {
         int nbplots = 0;
 
         try {
-            Connection conn = getConnection();
-
             if (ownerId == null) {
-                ps = conn.prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND owner = ?");
+                ps = getConnection().prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND owner = ?");
                 ps.setString(1, world.toLowerCase());
                 ps.setString(2, owner);
             } else {
-                ps = conn.prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND ownerId = ?");
+                ps = getConnection().prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND ownerId = ?");
                 ps.setString(1, world.toLowerCase());
                 ps.setBytes(2, UUIDFetcher.toBytes(ownerId));
             }
@@ -1004,9 +1040,7 @@ public class SqlManager {
         int nbplots = 0;
 
         try {
-            Connection conn = getConnection();
-
-            ps = conn.prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND finished <> 0");
+            ps = getConnection().prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND finished <> 0");
             ps.setString(1, world);
 
             setNbPlots = ps.executeQuery();
@@ -1039,13 +1073,12 @@ public class SqlManager {
         int nbplots = 0;
 
         try {
-            Connection conn = getConnection();
 
             Calendar cal = Calendar.getInstance();
             java.util.Date time = cal.getTime();
             Date date = new Date(time.getTime());
 
-            ps = conn.prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND expireddate < ?");
+            ps = getConnection().prepareStatement("SELECT Count(*) as NbPlot FROM plotmePlots WHERE LOWER(world) = ? AND expireddate < ?");
             ps.setString(1, world);
             ps.setDate(2, date);
 
@@ -1079,10 +1112,8 @@ public class SqlManager {
         ResultSet setPlots = null;
 
         try {
-            Connection conn = getConnection();
-
             statementPlot =
-                    conn.prepareStatement(
+                    getConnection().prepareStatement(
                             "SELECT idX, idZ, owner, finisheddate FROM plotmePlots WHERE LOWER(world) = ? AND finished <> 0 ORDER BY finisheddate LIMIT ?, ?");
             statementPlot.setString(1, world);
             //noinspection JpaQueryApiInspection
@@ -1131,14 +1162,12 @@ public class SqlManager {
         ResultSet setPlots = null;
 
         try {
-            Connection conn = getConnection();
-
             Calendar cal = Calendar.getInstance();
             java.util.Date utilDate = cal.getTime();
             Date sqlDate = new Date(utilDate.getTime());
 
             statementPlot =
-                    conn.prepareStatement(
+                    getConnection().prepareStatement(
                             "SELECT idX, idZ, owner, expireddate FROM plotmePlots WHERE LOWER(world) = ? AND protected = 0 AND expireddate < ? "
                                     + "ORDER BY expireddate LIMIT 50");
             statementPlot.setString(1, world);
@@ -1189,14 +1218,12 @@ public class SqlManager {
         ResultSet setPlots = null;
 
         try {
-            Connection conn = getConnection();
-
             Calendar cal = Calendar.getInstance();
             java.util.Date utilDate = cal.getTime();
             Date sqlDate = new Date(utilDate.getTime());
 
             statementPlot =
-                    conn.prepareStatement(
+                    getConnection().prepareStatement(
                             "SELECT idX, idZ, owner, expireddate FROM plotmePlots WHERE LOWER(world) = ? AND protected = 0 AND expireddate < ? ORDER BY expireddate LIMIT 1");
             statementPlot.setString(1, world);
             statementPlot.setDate(2, sqlDate);
@@ -1302,8 +1329,6 @@ public class SqlManager {
         ResultSet setPlots = null;
 
         try {
-            Connection conn = getConnection();
-
             String query = "SELECT DISTINCT A.*";
             if (ownedonly) {
                 query += "FROM plotmePlots A ";
@@ -1331,7 +1356,7 @@ public class SqlManager {
                 query += "AND LOWER(world) = ?";
             }
             
-            statementPlot = conn.prepareStatement(query);
+            statementPlot = getConnection().prepareStatement(query);
             
             if (playerId == null) {
                 statementPlot.setString(1, playername.toLowerCase());
@@ -1384,7 +1409,7 @@ public class SqlManager {
                     ownerId = UUIDFetcher.fromBytes(byOwner);
                 }
 
-                statementAllowed = conn.prepareStatement("SELECT * FROM plotmeAllowed WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
+                statementAllowed = getConnection().prepareStatement("SELECT * FROM plotmeAllowed WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
                 statementAllowed.setString(1, currworld.toLowerCase());
                 statementAllowed.setInt(2, idX);
                 statementAllowed.setInt(3, idZ);
@@ -1402,7 +1427,7 @@ public class SqlManager {
 
                 setAllowed.close();
 
-                statementDenied = conn.prepareStatement("SELECT * FROM plotmeDenied WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
+                statementDenied = getConnection().prepareStatement("SELECT * FROM plotmeDenied WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
                 statementDenied.setString(1, currworld.toLowerCase());
                 statementDenied.setInt(2, idX);
                 statementDenied.setInt(3, idZ);
@@ -1420,7 +1445,7 @@ public class SqlManager {
 
                 setDenied.close();
                 
-                statementMetadata = conn.prepareStatement("SELECT * FROM plotmeMetadata WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
+                statementMetadata = getConnection().prepareStatement("SELECT * FROM plotmeMetadata WHERE LOWER(world) = ? AND idX = ? AND idZ = ?");
                 statementMetadata.setString(1, currworld.toLowerCase());
                 statementMetadata.setInt(2, idX);
                 statementMetadata.setInt(3, idZ);
@@ -1474,11 +1499,10 @@ public class SqlManager {
     
     private boolean executesql(String sql) {
         try {
-            Connection conn = getConnection();
-            Statement statement = conn.createStatement();
+            Statement statement = getConnection().createStatement();
             boolean result = statement.execute(sql);
             statement.close();
-            conn.commit();
+            getConnection().commit();
             return result;
         } catch (SQLException ex) {
             return false;
@@ -1512,8 +1536,6 @@ public class SqlManager {
                 ResultSet setPlayers = null;
 
                 try {
-                    Connection conn = getConnection();
-
                     //Remove duplicated names
                     executesql("CREATE TABLE IF NOT EXISTS `TEMP2PLOTMEALLOWED` ("
                             + "`idX` INTEGER,"
@@ -1555,7 +1577,7 @@ public class SqlManager {
 
 
                     // Get all the players
-                    statementPlayers = conn.createStatement();
+                    statementPlayers = getConnection().createStatement();
                     // Exclude groups and names with * or missing
                     String sql = "SELECT LOWER(owner) as Name FROM plotmePlots WHERE ownerid IS NULL GROUP BY LOWER(owner) ";
                     sql +=
@@ -1572,9 +1594,9 @@ public class SqlManager {
                             List<String> names = new ArrayList<>();
     
                             //Prepare delete statements
-                            psDeleteOwner = conn.prepareStatement("UPDATE plotmePlots SET owner = '' WHERE LOWER(owner) = ? ");
-                            psDeleteAllowed = conn.prepareStatement("DELETE FROM plotmeAllowed WHERE LOWER(player) = ? ");
-                            psDeleteDenied = conn.prepareStatement("DELETE FROM plotmeDenied WHERE LOWER(player) = ? ");
+                            psDeleteOwner = getConnection().prepareStatement("UPDATE plotmePlots SET owner = '' WHERE LOWER(owner) = ? ");
+                            psDeleteAllowed = getConnection().prepareStatement("DELETE FROM plotmeAllowed WHERE LOWER(player) = ? ");
+                            psDeleteDenied = getConnection().prepareStatement("DELETE FROM plotmeDenied WHERE LOWER(player) = ? ");
     
                             do {
                                 String name = setPlayers.getString("Name");
@@ -1589,7 +1611,7 @@ public class SqlManager {
                                         psDeleteAllowed.executeUpdate();
                                         psDeleteDenied.setString(1, name);
                                         psDeleteDenied.executeUpdate();
-                                        conn.commit();
+                                        getConnection().commit();
                                     }
                                 }
                             } while (setPlayers.next());
@@ -1606,18 +1628,18 @@ public class SqlManager {
                                     //plugin.getLogger().info("Finished fetching " + response.size() + " UUIDs. Starting database update.");
                                     
                                     String sqlUpdate = "UPDATE plotmePlots SET ownerid = ?, owner = ? WHERE LOWER(owner) = ? AND ownerid IS NULL";
-                                    psOwnerId = conn.prepareStatement(sqlUpdate);
+                                    psOwnerId = getConnection().prepareStatement(sqlUpdate);
 
                                     sqlUpdate = "CREATE TABLE IF NOT EXISTS `TEMPPLOTMEALLOWED` (`idX` INTEGER, `idZ` INTEGER, `world` varchar(32));";
-                                    psAllowedPlayerId0 = conn.prepareStatement(sqlUpdate);
+                                    psAllowedPlayerId0 = getConnection().prepareStatement(sqlUpdate);
                                     psAllowedPlayerId0.execute();
                                     psAllowedPlayerId0.close();
 
                                     sqlUpdate = "DELETE FROM TEMPPLOTMEALLOWED;";
-                                    psAllowedPlayerId1 = conn.prepareStatement(sqlUpdate);
+                                    psAllowedPlayerId1 = getConnection().prepareStatement(sqlUpdate);
                                     sqlUpdate = "INSERT INTO TEMPPLOTMEALLOWED SELECT idX, idZ, world FROM plotmeAllowed " +
                                            "WHERE LOWER(player) = ? OR LOWER(player) = ? GROUP BY idX, idZ, world HAVING Count(*) = 2;";
-                                    psAllowedPlayerId2 = conn.prepareStatement(sqlUpdate);
+                                    psAllowedPlayerId2 = getConnection().prepareStatement(sqlUpdate);
                                     
                                     if (isUsingMySQL()) {
                                         sqlUpdate = "DELETE A1.* FROM plotmeAllowed A1 INNER JOIN TEMPPLOTMEALLOWED as A2 ON A1.idX = A2.idX AND A1.idZ = A2.idZ AND A1.world = A2.world " +
@@ -1630,21 +1652,21 @@ public class SqlManager {
                                             "WHERE LOWER(A1.player) = ?)";
                                     }
                                     
-                                    psAllowedPlayerId3 = conn.prepareStatement(sqlUpdate);
+                                    psAllowedPlayerId3 = getConnection().prepareStatement(sqlUpdate);
                                     sqlUpdate = "UPDATE plotmeAllowed SET playerid = ?, player = ? WHERE LOWER(player) = ? AND playerid IS NULL";
-                                    psAllowedPlayerId4 = conn.prepareStatement(sqlUpdate);
+                                    psAllowedPlayerId4 = getConnection().prepareStatement(sqlUpdate);
 
 
                                     sqlUpdate = "CREATE TABLE IF NOT EXISTS `TEMPPLOTMEDENIED` (`idX` INTEGER, `idZ` INTEGER, `world` varchar(32));";
-                                    psDeniedPlayerId0 = conn.prepareStatement(sqlUpdate);
+                                    psDeniedPlayerId0 = getConnection().prepareStatement(sqlUpdate);
                                     psDeniedPlayerId0.execute();
                                     psDeniedPlayerId0.close();
 
                                     sqlUpdate = "DELETE FROM TEMPPLOTMEDENIED;";
-                                    psDeniedPlayerId1 = conn.prepareStatement(sqlUpdate);
+                                    psDeniedPlayerId1 = getConnection().prepareStatement(sqlUpdate);
                                     sqlUpdate = "INSERT INTO TEMPPLOTMEDENIED SELECT idX, idZ, world FROM plotmeDenied " +
                                            "WHERE LOWER(player) = ? OR LOWER(player) = ? GROUP BY idX, idZ, world HAVING Count(*) = 2;";
-                                    psDeniedPlayerId2 = conn.prepareStatement(sqlUpdate);
+                                    psDeniedPlayerId2 = getConnection().prepareStatement(sqlUpdate);
                                     
                                     if (isUsingMySQL()) {
                                         sqlUpdate = "DELETE D1.* FROM plotmeDenied D1 INNER JOIN TEMPPLOTMEDENIED as D2 ON D1.idX = D2.idX AND D1.idZ = D2.idZ AND D1.world = D2.world " +
@@ -1657,9 +1679,9 @@ public class SqlManager {
                                             "WHERE LOWER(A1.player) = ?)";
                                     }
                                     
-                                    psDeniedPlayerId3 = conn.prepareStatement(sqlUpdate);
+                                    psDeniedPlayerId3 = getConnection().prepareStatement(sqlUpdate);
                                     sqlUpdate = "UPDATE plotmeDenied SET playerid = ?, player = ? WHERE LOWER(player) = ? AND playerid IS NULL";
-                                    psDeniedPlayerId4 = conn.prepareStatement(sqlUpdate);
+                                    psDeniedPlayerId4 = getConnection().prepareStatement(sqlUpdate);
     
                                     //int nbConverted = 0;
                                     for (String keyname : response.keySet()) {
@@ -1712,7 +1734,7 @@ public class SqlManager {
                                                 plugin.getLogger().info("newname : " + newname);
                                                 plugin.getLogger().info("oldname : " + oldname);
                                             }
-                                            conn.commit();
+                                            getConnection().commit();
                                             if (count == 0) {
                                                 plugin.getLogger().warning("Unable to update player '" + keyname + "'");
                                             }
@@ -1726,7 +1748,7 @@ public class SqlManager {
                                             psDeleteAllowed.executeUpdate();
                                             psDeleteDenied.setString(1, oldname);
                                             psDeleteDenied.executeUpdate();
-                                            conn.commit();
+                                            getConnection().commit();
                                         }
                                     }
     
@@ -1852,9 +1874,9 @@ public class SqlManager {
                         }
                         
                         try {
-                            psAllowedPlayerId5 = conn.prepareStatement("DROP TABLE IF EXISTS TEMPPLOTMEALLOWED;");
+                            psAllowedPlayerId5 = getConnection().prepareStatement("DROP TABLE IF EXISTS TEMPPLOTMEALLOWED;");
                             psAllowedPlayerId5.execute();
-                            psDeniedPlayerId5 = conn.prepareStatement("DROP TABLE IF EXISTS TEMPPLOTMEDENIED;");
+                            psDeniedPlayerId5 = getConnection().prepareStatement("DROP TABLE IF EXISTS TEMPPLOTMEDENIED;");
                             psDeniedPlayerId5.execute();
                         } catch(SQLException ee) {
                             plugin.getLogger().severe(ee.getMessage());
@@ -1887,8 +1909,6 @@ public class SqlManager {
                 PreparedStatement ps = null;
 
                 try {
-                    Connection conn = getConnection();
-
                     IPlayer player = plugin.getServerBridge().getPlayerExact(name);
                     UUID uuid = null;
                     String newname = name;
@@ -1902,17 +1922,17 @@ public class SqlManager {
 
                     switch (property) {
                         case "owner":
-                            ps = conn.prepareStatement(
+                            ps = getConnection().prepareStatement(
                                             "UPDATE plotmePlots SET ownerid = ?, owner = ? WHERE LOWER(owner) = ? AND idX = '" + idX + "' AND idZ = '"
                                             + idZ + "' AND LOWER(world) = '" + world + "'");
                             break;
                         case "allowed":
-                            ps = conn.prepareStatement(
+                            ps = getConnection().prepareStatement(
                                             "UPDATE plotmeAllowed SET playerid = ?, player = ? WHERE LOWER(player) = ? AND idX = '" + idX
                                             + "' AND idZ = '" + idZ + "' AND LOWER(world) = '" + world + "'");
                             break;
                         case "denied":
-                            ps = conn.prepareStatement("UPDATE plotmeDenied SET playerid = ?, player = ? WHERE LOWER(player) = ? AND idX = '" + idX
+                            ps = getConnection().prepareStatement("UPDATE plotmeDenied SET playerid = ?, player = ? WHERE LOWER(player) = ? AND idX = '" + idX
                                                           + "' AND idZ = '" + idZ + "' AND LOWER(world) = '" + world + "'");
                             break;
                         default:
@@ -1927,7 +1947,7 @@ public class SqlManager {
                     ps.setString(2, newname);
                     ps.setString(3, name.toLowerCase());
                     ps.executeUpdate();
-                    conn.commit();
+                    getConnection().commit();
 
                     ps.close();
 
@@ -1981,11 +2001,9 @@ public class SqlManager {
                 byte[] uuidInBytes = UUIDFetcher.toBytes(uuid);
 
                 try {
-                    Connection conn = getConnection();
-
-                    pss[0] = conn.prepareStatement("UPDATE plotmePlots SET owner = ? WHERE ownerid = ?");
-                    pss[1] = conn.prepareStatement("UPDATE plotmeAllowed SET player = ? WHERE playerid = ?");
-                    pss[2] = conn.prepareStatement("UPDATE plotmeDenied SET player = ? WHERE playerid = ?");
+                    pss[0] = getConnection().prepareStatement("UPDATE plotmePlots SET owner = ? WHERE ownerid = ?");
+                    pss[1] = getConnection().prepareStatement("UPDATE plotmeAllowed SET player = ? WHERE playerid = ?");
+                    pss[2] = getConnection().prepareStatement("UPDATE plotmeDenied SET player = ? WHERE playerid = ?");
 
                     for (PreparedStatement ps : pss) {
                         ps.setString(1, newname);
@@ -1993,7 +2011,7 @@ public class SqlManager {
                         ps.executeUpdate();
                     }
 
-                    conn.commit();
+                    getConnection().commit();
 
                     for (PreparedStatement ps : pss) {
                         ps.close();
@@ -2029,8 +2047,7 @@ public class SqlManager {
 
         //Plots
         try {
-            Connection conn = getConnection();
-            ps = conn.prepareStatement("SELECT idX FROM plotmeMetadata WHERE idX = ? AND idZ = ? AND world = ? AND pluginname = ? AND propertyname = ?");
+            ps = getConnection().prepareStatement("SELECT idX FROM plotmeMetadata WHERE idX = ? AND idZ = ? AND world = ? AND pluginname = ? AND propertyname = ?");
             ps.setInt(1, idX);
             ps.setInt(2, idZ);
             ps.setString(3, world.toLowerCase());
@@ -2043,7 +2060,7 @@ public class SqlManager {
                 rsProperty.close();
                 ps.close();
                 
-                ps = conn.prepareStatement("UPDATE plotmeMetadata SET propertyvalue = ? WHERE idX = ? AND idZ = ? AND world = ? AND pluginname = ? AND propertyname = ?");
+                ps = getConnection().prepareStatement("UPDATE plotmeMetadata SET propertyvalue = ? WHERE idX = ? AND idZ = ? AND world = ? AND pluginname = ? AND propertyname = ?");
                 ps.setString(1, value);
                 ps.setInt(2, idX);
                 ps.setInt(3, idZ);
@@ -2056,7 +2073,7 @@ public class SqlManager {
                 rsProperty.close();
                 ps.close();
                 
-                ps = conn.prepareStatement("INSERT INTO plotmeMetadata(idX, idZ, world, pluginname, propertyname, propertyvalue) VALUES(?,?,?,?,?,?)");
+                ps = getConnection().prepareStatement("INSERT INTO plotmeMetadata(idX, idZ, world, pluginname, propertyname, propertyvalue) VALUES(?,?,?,?,?,?)");
                 ps.setInt(1, idX);
                 ps.setInt(2, idZ);
                 ps.setString(3, world.toLowerCase());
@@ -2067,7 +2084,7 @@ public class SqlManager {
                 ps.executeUpdate();
             }
             
-            conn.commit();
+            getConnection().commit();
             return true;
         } catch (SQLException ex) {
             plugin.getLogger().severe("Saving property Exception :");

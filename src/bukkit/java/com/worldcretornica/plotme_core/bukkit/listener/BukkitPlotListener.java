@@ -138,7 +138,7 @@ public class BukkitPlotListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    /*@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBucketEvent(PlayerBucketEvent event) {
         Player player = event.getPlayer();
         BukkitLocation location = new BukkitLocation(event.getBlockClicked().getLocation());
@@ -171,7 +171,7 @@ public class BukkitPlotListener implements Listener {
                 }
             }
         }
-    }
+    }*/
 
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

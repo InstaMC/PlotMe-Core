@@ -40,6 +40,21 @@ public class PlotMapInfo {
 
         return plots.get(id);
     }
+    
+    public int getMaxPlotX(String world)
+    {
+        return plugin.getSqlManager().getMaxPlotX(world);
+    }
+    
+    public int getMaxPlotZByX(int x, String world)
+    {
+        return plugin.getSqlManager().getMaxPlotZByX(x, world);
+    }
+    
+    public int getMaxPlotZ(String world)
+    {
+        return plugin.getSqlManager().getMaxPlotZ(world);
+    }
 
     public ConcurrentHashMap<String, Plot> getLoadedPlots() {
         return plots;
