@@ -2,8 +2,8 @@ name: PlotMe
 main: com.worldcretornica.plotme_core.bukkit.PlotMe_CorePlugin
 version: 0.16.4
 author: ZachBora
-authors: [MattBDev]
-website: http://worldcretornica.github.io/PlotMe-Core/
+authors: [MattBDev,NeT32]
+website: https://www.instamc.com.br/
 load: STARTUP
 softdepend: [Vault]
 description: >
