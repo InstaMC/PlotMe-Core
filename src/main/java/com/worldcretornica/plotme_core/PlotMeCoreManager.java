@@ -471,6 +471,16 @@ public class PlotMeCoreManager {
 
         return pmi.getPlot(id);
     }
+    
+    public Plot getCachedPlotById(String id, String name) {
+        PlotMapInfo pmi = getMap(name);
+
+        if (pmi == null) {
+            return null;
+        }
+
+        return pmi.getCachedPlot(id);
+    }
 
     /**
      * Gets the plot with the given id and location based on the given player.

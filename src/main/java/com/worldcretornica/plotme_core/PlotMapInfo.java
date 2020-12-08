@@ -41,6 +41,15 @@ public class PlotMapInfo {
         return plots.get(id);
     }
     
+    public Plot getCachedPlot(String id)
+    {
+        if(plots.containsKey(id))
+        {
+            return plots.get(id);
+        }
+        return null;
+    }
+    
     public int getMaxPlotX(String world)
     {
         return plugin.getSqlManager().getMaxPlotX(world);

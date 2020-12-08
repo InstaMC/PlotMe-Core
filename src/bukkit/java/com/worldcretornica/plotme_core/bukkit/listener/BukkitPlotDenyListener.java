@@ -32,7 +32,7 @@ public class BukkitPlotDenyListener implements Listener {
 
             String idTo = manager.getPlotId(to);
 
-            Plot plot = manager.getPlotById(idTo, player);
+            Plot plot = manager.getCachedPlotById(idTo, player.getWorld().getName());
 
             if (plot != null && plot.isDeniedInternal(player.getName(), player.getUniqueId())) {
                 Location t = event.getFrom().clone();
@@ -50,7 +50,7 @@ public class BukkitPlotDenyListener implements Listener {
         if (manager.isPlotWorld(player) && !player.hasPermission(PermissionNames.ADMIN_BYPASSDENY)) {
             String id = manager.getPlotId(player);
 
-            Plot plot = manager.getPlotById(id, player);
+            Plot plot = manager.getCachedPlotById(id, player.getWorld().getName());
 
             if (plot != null && plot.isDenied(player.getUniqueId())) {
                 player.setLocation(manager.getPlotHome(player.getWorld(), plot.getId()));
