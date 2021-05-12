@@ -73,7 +73,7 @@ public class PlotMe_Core
         serverBridge.setupListeners();
         setupClearSpools();
         getSqlManager().createTable();
-        getSqlManager().plotConvertToUUIDAsynchronously();
+        //getSqlManager().plotConvertToUUIDAsynchronously(); // NeT32
     }
 
     public void reload()

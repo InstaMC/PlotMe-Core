@@ -16,9 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-import javax.inject.Singleton;
-
-@Singleton
 public class PlotMeCoreManager {
 
     private static final PlotMeCoreManager INSTANCE = new PlotMeCoreManager();
